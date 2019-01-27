@@ -7,11 +7,13 @@ function main(){
   update_app_permissions
   verify_access
 }
+# Global Variables
+reset=`tput sgr0`
+me=`basename "${0%.sh}"`
 
 # Generic output functions
 print_head(){
   local white=`tput setaf 7`
-  local reset=`tput sgr0`
   echo ""
   echo "==========================================================================="
   echo "${white}$1${reset}"
@@ -20,36 +22,32 @@ print_head(){
 }
 print_info(){
   local white=`tput setaf 7`
-  local reset=`tput sgr0`
   echo "${white}INFO: $1${reset}"
-  echo "INFO: $1" >> add-policy.log
+  echo "INFO: $1" >> ${me}.log
 }
 print_success(){
   local green=`tput setaf 2`
-  local reset=`tput sgr0`
   echo "${green}SUCCESS: $1${reset}"
-  echo "SUCCESS: $1" >> add-policy.log
+  echo "SUCCESS: $1" >> ${me}.log
 }
 print_error(){
   local red=`tput setaf 1`
-  local reset=`tput sgr0`
   echo "${red}ERROR: $1${reset}"
-  echo "ERROR: $1" >> add-policy.log
+  echo "ERROR: $1" >> ${me}.log
 }
 print_warning(){
   local yellow=`tput setaf 3`
-  local reset=`tput sgr0`
   echo "${yellow}WARNING: $1${reset}"
-  echo "WARNING: $1" >> add-policy.log
+  echo "WARNING: $1" >> ${me}.log
 }
 
 prompt_user(){
   print_head "Step 1: Gathering user info"
-  touch add-policy.log
+  touch ${me}.log
   # Obtain system name
   done=0
   while : ; do
-    read -p 'Please enter the system name to add to Conjur: ' systemvar
+    read -p "Please enter the system name to add to Conjur: " systemvar
     print_info "You entered $systemvar, is this correct (Yes or No)? "
     select yn in "Yes" "No"; do
       case $yn in 
@@ -73,7 +71,7 @@ update_root_policy(){
   print_info "Root policy file updated"
   print_info "Reloading root policy"
   # Update Conjur Policy
-  conjur policy load --replace root root.yml >> add-policy.log 2>&1
+  conjur policy load --replace root root.yml >> ${me}.log 2>&1
   print_success "Conjur root policy updated"
 }
 
@@ -105,7 +103,6 @@ update_app_permissions(){
       Yes ) 
         civar=1
         print_info "$systemvar will be able to access CI secrets"
-        # echo "" >> apps.yml
         echo "" >> secrets.yml
         echo "- !permit" >> secrets.yml
         echo "  role: !layer /$systemvar " >> secrets.yml
@@ -146,7 +143,7 @@ update_app_permissions(){
   done
   echo ""
   print_info "Updating $systemvar secrets access policy"
-  conjur policy load --replace apps/secrets secrets.yml >> add-policy.log 2>&1
+  conjur policy load --replace apps/secrets secrets.yml >> ${me}.log 2>&1
   print_info "Verifying $systemvar secrets access"
   local test=$(conjur resource permitted_roles variable:apps/secrets/ci-variables/puppet_secret read)
   if [[ $civar == 1 ]]; then
