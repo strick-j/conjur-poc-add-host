@@ -65,13 +65,13 @@ prompt_user(){
 }
 
 update_root_policy(){
-  print_head "Step 2: Updating rool policy"
+  print_head "Step 2: Updating root policy file"
   echo "" >> root.yml
   echo "- !policy" >> root.yml
   echo "  id: $systemvar" >> root.yml
   echo "  owner: !group admins" >> root.yml
   print_info "Root policy file updated"
-  
+  print_info "Reloading root policy"
   # Update Conjur Policy
   conjur policy load --replace root root.yml >> add-policy.log 2>&1
   print_success "Conjur root policy updated"
@@ -90,6 +90,7 @@ generate_new_policy(){
   echo "  role: !layer" >> ${systemvar}.yml
   echo "  member: !host $systemvar" >> ${systemvar}.yml
   # Load new policy
+  print_info "Loading new policy - ${systemvar}.yml"
   conjur policy load $systemvar ${systemvar}.yml >> ${systemvar}.identity 2>&1
   print_info "$systemvar name and api information stored in $PWD/${systemvar}.identity file"
   print_success "$systemvar policy generated and loaded"
@@ -170,7 +171,7 @@ update_app_permissions(){
   print_success "Secrets access policy updated"
 }
 verify_access(){
-  print_head "Testing secret access based CI/CD choices"
+  print_head "Step 5: Testing secret access based CI/CD choices"
   # Test access to CI Secret
   if [[ $civar == 1 ]]; then
     print_info "Attempting to access CI Secret"
