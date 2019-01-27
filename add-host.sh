@@ -109,8 +109,8 @@ update_app_permissions(){
         echo "- !permit" >> secrets.yml
         echo "  role: !layer /$systemvar " >> secrets.yml
         echo "  privileges:" >> secrets.yml
-	      echo "     - read" >> secrets.yml
-	      echo "     - execute" >> secrets.yml
+        echo "     - read" >> secrets.yml
+        echo "     - execute" >> secrets.yml
         echo "  resource: *ci-secrets" >> secrets.yml
         break
         ;;
@@ -127,13 +127,13 @@ update_app_permissions(){
     case $yn in 
       Yes )
         cdvar=1
-	      print_info "$systemvar will be able to access CD secrets"
+        print_info "$systemvar will be able to access CD secrets"
         echo "" >> secrets.yml
         echo "- !permit" >> secrets.yml
         echo "  role: !layer /$systemvar " >> secrets.yml
         echo "  privileges:" >> secrets.yml
-	      echo "     - read" >> secrets.yml
-	      echo "     - execute" >> secrets.yml
+        echo "     - read" >> secrets.yml
+        echo "     - execute" >> secrets.yml
         echo "  resource: *cd-secrets" >> secrets.yml
         break
         ;;
