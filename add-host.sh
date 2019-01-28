@@ -170,13 +170,13 @@ update_app_permissions(){
 verify_access(){
   print_head "Step 5: Testing secret access based CI/CD choices"
   # Test access to CI Secret
+  local conjurCert="/root/conjur-cyberark.pem"
+  local hostname=$(cat ~/.netrc | awk '/machine/ {print $2}')
+  local hostname=${hostname%/authn}
+  local api_key=$(awk '/api_key/ {print $2}' $PWD/${systemvar}.identity)
+  local api_key=$(sed -e 's/^"//' -e 's/"$//' <<<"$api_key")
   if [[ $civar == 1 ]]; then
     print_info "Attempting to access CI Secret"
-    local conjurCert="/root/conjur-cyberark.pem"
-    local hostname=$(cat ~/.netrc | awk '/machine/ {print $2}')
-    local hostname=${hostname%/authn}
-    local api_key=$(awk '/api_key/ {print $2}' $PWD/${systemvar}.identity)
-    local api_key=$(sed -e 's/^"//' -e 's/"$//' <<<"$api_key")
     local secret_name="apps/secrets/ci-variables/chef_secret"
     local auth=$(curl -s --cacert $conjurCert -H "Content-Type: text/plain" -X POST -d "${api_key}" $hostname/authn/cyberark/host%2F$systemvar%2F$systemvar/authenticate)
     local auth_token=$(echo -n $auth | base64 | tr -d '\r\n')
