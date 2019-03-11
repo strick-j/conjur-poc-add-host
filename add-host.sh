@@ -170,7 +170,10 @@ update_app_permissions(){
 verify_access(){
   print_head "Step 5: Testing secret access based CI/CD choices"
   # Test access to CI Secret
-  local conjurCert="/root/conjur-cyberark.pem"
+  local conjurCert=$(cat ~/.conjurrc | awk '/cert_file:/ {print $2}')
+  local conjurCert=$(sed -e 's/^"//' -e 's/"$//' <<<"$conjurCert")
+  local account=$(cat ~/.conjurrc | awk '/account:/ {print $2}')
+ echo $conjurCert
   local hostname=$(cat ~/.netrc | awk '/machine/ {print $2}')
   local hostname=${hostname%/authn}
   local api_key=$(awk '/api_key/ {print $2}' $PWD/${systemvar}.identity)
@@ -178,9 +181,9 @@ verify_access(){
   if [[ $civar == 1 ]]; then
     print_info "Attempting to access CI Secret"
     local secret_name="apps/secrets/ci-variables/chef_secret"
-    local auth=$(curl -s --cacert $conjurCert -H "Content-Type: text/plain" -X POST -d "${api_key}" $hostname/authn/cyberark/host%2F$systemvar%2F$systemvar/authenticate)
+    local auth=$(curl -s --cacert $conjurCert -H "Content-Type: text/plain" -X POST -d "${api_key}" $hostname/authn/$account/host%2F$systemvar%2F$systemvar/authenticate)
     local auth_token=$(echo -n $auth | base64 | tr -d '\r\n')
-    local secret_retrieve=$(curl --cacert $conjurCert -s -X GET -H "Authorization: Token token=\"$auth_token\"" $hostname/secrets/cyberark/variable/$secret_name)
+    local secret_retrieve=$(curl --cacert $conjurCert -s -X GET -H "Authorization: Token token=\"$auth_token\"" $hostname/secrets/$account/variable/$secret_name)
     echo ""
     print_success "Secret is: $secret_retrieve"
     echo ""
@@ -189,9 +192,9 @@ verify_access(){
   if [[ $cdvar == 1 ]]; then
     print_info "Attempting to access CD Secret"
     local secret_name="apps/secrets/cd-variables/kubernetes_secret"
-    local auth=$(curl -s --cacert $conjurCert -H "Content-Type: text/plain" -X POST -d "${api_key}" $hostname/authn/cyberark/host%2F$systemvar%2F$systemvar/authenticate)
+    local auth=$(curl -s --cacert $conjurCert -H "Content-Type: text/plain" -X POST -d "${api_key}" $hostname/authn/$account/host%2F$systemvar%2F$systemvar/authenticate)
     local auth_token=$(echo -n $auth | base64 | tr -d '\r\n')
-    local secret_retrieve=$(curl --cacert $conjurCert -s -X GET -H "Authorization: Token token=\"$auth_token\"" $hostname/secrets/cyberark/variable/$secret_name)
+    local secret_retrieve=$(curl --cacert $conjurCert -s -X GET -H "Authorization: Token token=\"$auth_token\"" $hostname/secrets/$account/variable/$secret_name)
     echo ""
     print_success "Secret is: $secret_retrieve"
     echo ""
